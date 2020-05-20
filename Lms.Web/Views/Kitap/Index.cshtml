@@ -1,0 +1,204 @@
+﻿@model Kys.Web.ViewModels.KitapAramaViewModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- begin:: Subheader -->
+<div class="kt-subheader   kt-grid__item" id="kt_subheader">
+    <div class="kt-container  kt-container--fluid ">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">
+                Kütüphane
+            </h3>
+            <span class="kt-subheader__separator kt-hidden"></span>
+            <div class="kt-subheader__breadcrumbs">
+                <a href="#" class="kt-subheader__breadcrumbs-home"><i class="flaticon2-shelter"></i></a>
+                <span class="kt-subheader__breadcrumbs-separator"></span>
+                <a href="" class="kt-subheader__breadcrumbs-link">
+                    Kitap Arama
+                </a>
+                <!-- <span class="kt-subheader__breadcrumbs-link kt-subheader__breadcrumbs-link--active">Active link</span> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="kt-container  kt-container--fluid  kt-grid__item kt-grid__item--fluid">
+    <!--begin::Modal-->
+    <div class="modal fade" id="KitapModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Kitap Kayıt</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <!--begin::Portlet-->
+            <div class="kt-portlet kt-portlet--height-fluid" id="kt_page_portlet">
+                <div class="kt-portlet__head kt-portlet__head--lg">
+                    <div class="kt-portlet__head-label">
+                        <h3 class="kt-portlet__head-title">Kitap Arama</h3>
+                    </div>
+                    <div class="kt-portlet__head-toolbar">
+                        <a href="#" class="btn btn-clean kt-margin-r-10">
+                            <i class="la la-arrow-left"></i>
+                            <span class="kt-hidden-mobile">Geri</span>
+                        </a>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-bold btn-label-brand btn-sm" onclick="KitapKayit()" data-toggle="modal" data-target="#KitapModal">Yeni Kitap</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="kt-portlet__body">
+                    <form id="KitapAramaForm">
+                        <div class="form-group row">
+                            <div class="col-lg-6">
+                                <ejs-textbox id="KitapAramaAd" ejs-for="AramaAd" cssClass="e-outline" placeholder="Ad" floatLabelType="Auto"></ejs-textbox>
+                            </div>
+                            <div class="col-lg-6">
+                                <ejs-textbox id="KitapAramaYazar" ejs-for="AramaYazar" cssClass="e-outline" placeholder="Yazar" floatLabelType="Auto"></ejs-textbox>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-lg-6">
+                                <ejs-textbox id="KitapAramaYayinevi" ejs-for="AramaYayinevi" cssClass="e-outline" placeholder="Yayinevi" floatLabelType="Auto"></ejs-textbox>
+                            </div>
+                            <div class="col-lg-6">
+                                <ejs-textbox id="KitapAramaIsbn" ejs-for="AramaIsbn" cssClass="e-outline" placeholder="Isbn" floatLabelType="Auto"></ejs-textbox>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="kt-portlet__foot">
+                    <div class="kt-form__actions">
+                        <div class="row">
+                            <div class="col-lg-12 kt-align-center">
+                                <button type="reset" onclick="KitapAramaSonucGetir()" class="btn btn-warning">Ara</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Portlet-->
+        </div>
+    </div>
+    <div id="GridDiv" class="row">
+        <div class="col-lg-12">
+            <div class="kt-portlet kt-portlet--height-fluid" id="kt_page_portlet">
+                <div class="kt-portlet__body">
+                    <div class="form-group row">
+                        <div class="col-lg-12">
+                            <div id="KitapAramaSonucGrid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    $(document).ready(function () {
+        var Guncelle = function (args) {
+            debugger;
+            var rowObj = grid.getRowObjectFromUID(ej.base.closest(args.target, '.e-row').getAttribute('data-uid'));            
+            $.ajax({
+                url: "/Kitap/KitapKayitGuncelle",
+                type: "get",
+                data: rowObj.data,
+                success: function (sonuc) {
+                    debugger;
+                    $('#KitapModal .modal-body').html(sonuc);
+                    $('#KitapModal').modal('show');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    debugger;
+                    if (jqXHR.status == 500) {
+                        alert('Internal error: ' + jqXHR.responseText);
+                    } else {
+                        alert('Unexpected error.');
+                    }
+                }
+            });
+        }
+
+        var Sil = function (args) {
+            var rowObj = grid.getRowObjectFromUID(ej.base.closest(args.target, '.e-row').getAttribute('data-uid'));
+            $.ajax({
+                url: "/Kitap/KitapSil",
+                type: "get",
+                data: rowObj.data,
+                success: function (sonuc) {
+                    ShowAlert("success", { text: sonuc.HataMesaji })
+                    GridYenile(grid);
+                }
+            });
+        }
+
+        var grid = new ej.grids.Grid({
+            columns: [
+                { field: 'KitapKey', headerText: 'Kitap No', isPrimaryKey: true, type: 'number' },
+                { field: 'Ad', headerText: 'Ad', type: 'string' },
+                { field: 'Isbn', headerText: 'Isbn', type: 'string' },
+                { field: 'Yazar.Ad', headerText: 'Yazar', type: 'string' },
+                { field: 'DemirbasNo', headerText: 'Demirbaş No', type: 'number' },
+                {
+                    headerText: 'İşlemler', textAlign: 'Center', commands: [
+                        { buttonOption: { content: 'Güncelle', iconCss: 'e-icons e-edit', cssClass: 'e-flat e-primary', click: Guncelle } },
+                        { buttonOption: { content: 'Sil', iconCss: "e-icons e-delete", cssClass: 'e-flat btn btn-danger', click: Sil } },
+                    ]
+                },
+            ]
+        });
+
+        let ajax = new ej.base.Ajax("/Kitap/KitaplariGetir", "GET");
+        ajax.send();
+        ajax.onSuccess = function (data) {
+            grid.dataSource = JSON.parse(data);
+        };        
+        grid.appendTo('#KitapAramaSonucGrid');
+
+    });
+
+    function GridYenile(grid) {
+        let ajax = new ej.base.Ajax("/Kitap/KitaplariGetir", "GET");
+        ajax.send();
+        ajax.onSuccess = function (data) {
+            grid.dataSource = JSON.parse(data);
+        };
+    }
+
+    function KitapKayit() {
+        $.ajaxSetup({ cache: false });
+        $.get('/Kitap/KitapKayit', function () {
+        }).done(function (result) {
+            $('#KitapModal .modal-body').html(result);
+            $('#KitapModal').modal('show');
+        });
+    }
+
+    function KitapAramaSonucGetir() {      
+        var model = $("#KitapAramaForm").serializeObject();
+        $.ajax({
+            url: "/Kitap/KitaplariGetir",
+            type: "post",
+            data: model,
+            success: function (sonuc) {
+                var grid = document.getElementById("KitapAramaSonucGrid").ej2_instances[0];
+                grid.dataSource = sonuc;
+                grid.refresh();
+            }
+        });       
+    }
+</script>
+<ejs-scripts></ejs-scripts>

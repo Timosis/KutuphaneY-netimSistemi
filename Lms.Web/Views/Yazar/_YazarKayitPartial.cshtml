@@ -1,0 +1,55 @@
+﻿@model Kys.Web.ViewModels.YazarKayitViewModel
+@using Syncfusion.EJ2
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+    <form id="YazarKayitForm">
+        <input asp-for="YazarKey" type="hidden" />
+        <div class="form-group row align-center">
+            <div class="col-lg-12">
+                <ejs-textbox id="YazarAd" ejs-for="Ad" cssClass="e-outline" placeholder="Ad" floatLabelType="Auto"></ejs-textbox>
+            </div>
+        </div>
+        <div class="form-group row align-center">
+            <div class="col-lg-12">
+                <ejs-textbox id="YazarHakkinda" ejs-for="Hakkinda" multiline="true" cssClass="e-outline" placeholder="Hakkında" floatLabelType="Auto"></ejs-textbox>
+            </div>
+        </div>
+    </form>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+    <button type="button" onclick="YazarKaydet()" class="btn btn-primary">Kaydet</button>
+</div>
+
+<script>
+    function YazarKaydet() {
+        var model = $('#YazarKayitForm').serializeObject();
+        $.ajax({
+            url: "/Yazar/YazarKaydet",
+            type: "post",
+            data: model,
+            success: function (sonuc) {
+                if (sonuc.Tip == 1) {
+                    ShowAlert("success", { text: sonuc.HataMesaji })
+                    $('#YazarModal').modal('hide');
+                    YazarGridYenile();
+                }
+            }
+        });      
+    }
+
+    function YazarGridYenile() {
+        var grid = document.getElementById("YazarlarGrid").ej2_instances[0];//Get node reference.
+        let ajax = new ej.base.Ajax("/Yazar/YazarlariGetir", "GET");
+        ajax.send();
+        ajax.onSuccess = function (data) {
+            grid.dataSource = JSON.parse(data);
+        };
+        grid.refresh();
+    }
+</script>
+
+<ejs-scripts></ejs-scripts>

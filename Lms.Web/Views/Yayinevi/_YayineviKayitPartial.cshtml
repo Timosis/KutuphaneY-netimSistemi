@@ -1,0 +1,53 @@
+﻿@model Kys.Web.ViewModels.YayineviKayitViewModel
+@using Syncfusion.EJ2
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<form id="YayineviKayitForm">
+    <input asp-for="YayineviKey" type="hidden" />
+    <div class="form-group row align-center">
+        <div class="col-lg-12">
+            <ejs-textbox id="YayineviAd" ejs-for="Ad" cssClass="e-outline" placeholder="Ad" floatLabelType="Auto"></ejs-textbox>
+        </div>
+    </div>
+</form>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+    <button type="button" onclick="YayineviKaydet()" class="btn btn-primary">Kaydet</button>
+</div>
+
+<script>
+    function YayineviKaydet() {
+        var model = $('#YayineviKayitForm').serializeObject();
+        $.ajax({
+            url: "/Yayinevi/YayineviKaydet",
+            type: "post",
+            data: model,
+            success: function (sonuc) {
+                if (sonuc.Tip == 1) {
+                    ShowAlert("success", { text: sonuc.HataMesaji })
+                    $('#YayineviModal').modal('hide');
+                    YayineviGridYenile();
+                }
+            }
+        });    
+    }
+
+
+    function YayineviGridYenile() {
+        var grid = document.getElementById("YayinevleriGrid").ej2_instances[0];//Get node reference.
+        let ajax = new ej.base.Ajax("/Yayinevi/YayineviGetir", "GET");
+        ajax.send();
+        ajax.onSuccess = function (data) {
+            grid.dataSource = JSON.parse(data);
+        };
+        grid.refresh();
+    }
+
+
+</script>
+
+<ejs-scripts></ejs-scripts>

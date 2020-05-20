@@ -1,0 +1,143 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- begin:Subheader -->
+<div class="kt-subheader   kt-grid__item" id="kt_subheader">
+    <div class="kt-container  kt-container--fluid ">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">
+                Kütüphane
+            </h3>
+            <span class="kt-subheader__separator kt-hidden"></span>
+            <div class="kt-subheader__breadcrumbs">
+                <a href="#" class="kt-subheader__breadcrumbs-home"><i class="flaticon2-shelter"></i></a>
+                <span class="kt-subheader__breadcrumbs-separator"></span>
+                <a href="" class="kt-subheader__breadcrumbs-link">
+                    Yazarlar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="kt-container  kt-container--fluid  kt-grid__item kt-grid__item--fluid">
+
+    <!--begin::Modal-->
+    <div class="modal fade" id="YazarModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Yazar Kayıt/Güncelleme </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <!--begin::Portlet-->
+            <div class="kt-portlet kt-portlet--height-fluid" id="kt_page_portlet">
+                <div class="kt-portlet__head kt-portlet__head--lg">
+                    <div class="kt-portlet__head-label">
+                        <h3 class="kt-portlet__head-title">Yazarlar</h3>
+                    </div>
+                    <div class="kt-portlet__head-toolbar">
+                        <a href="#" class="btn btn-clean kt-margin-r-10">
+                            <i class="la la-arrow-left"></i>
+                            <span class="kt-hidden-mobile">Geri</span>
+                        </a>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-bold btn-label-brand btn-sm" onclick="YazarKayit()" data-toggle="modal" data-target="#YazarModal">Yeni Yazar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="kt-portlet__body">
+                    <form id="KitapAramaForm" method="post">
+                        <div class="form-group row">
+                            <div class="col-lg-12">
+                                <div id="YazarlarGrid">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!--end::Portlet-->
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+
+        var Guncelle = function (args) {
+            var rowObj = grid.getRowObjectFromUID(ej.base.closest(args.target, '.e-row').getAttribute('data-uid'));
+            $.ajax({
+                url: "/Yazar/YazarKayit",
+                type: "get",
+                data: rowObj.data,
+                success: function (sonuc) {
+                    $('#YazarModal .modal-body').html(sonuc);
+                    $('#YazarModal').modal('show');
+                }
+            });
+        }
+
+        var Sil = function (args) {
+            var rowObj = grid.getRowObjectFromUID(ej.base.closest(args.target, '.e-row').getAttribute('data-uid'));
+            $.ajax({
+                url: "/Yazar/YazarSil",
+                type: "get",
+                data: rowObj.data,
+                success: function (sonuc) {
+                    ShowAlert("success", { text: sonuc.HataMesaji })
+                    GridYenile();
+                }
+            });
+        }
+
+        var grid = new ej.grids.Grid({
+            columns: [
+                { field: 'YazarKey', headerText: 'Yazar No', isPrimaryKey: true, type: 'number' },
+                { field: 'Ad', headerText: 'Ad', type: 'string' },
+                {
+                    headerText: 'İşlemler', textAlign: 'Center', commands: [
+                        { buttonOption: { content: 'Güncelle', iconCss: 'e-icons e-edit', cssClass: 'e-flat e-primary', click: Guncelle } },
+                        { buttonOption: { content: 'Sil', iconCss: "e-icons e-delete", cssClass: 'e-flat btn btn-danger', click: Sil } },
+                    ]
+                },
+            ]
+        });
+
+        GridYenile(grid);
+        grid.appendTo('#YazarlarGrid');
+       
+
+    });
+
+    function YazarKayit() {
+        $.ajaxSetup({ cache: false });
+        $.get('/Yazar/YazarKayit', function () {
+        }).done(function (result) {
+            $('#YazarModal .modal-body').html(result);
+            $('#YazarModal').modal('show');
+        });
+    }
+
+    function GridYenile(grid) {        
+        let ajax = new ej.base.Ajax("/Yazar/YazarlariGetir", "GET");
+        ajax.send();
+        ajax.onSuccess = function (data) {
+            grid.dataSource = JSON.parse(data);
+        };
+    }
+</script>
+

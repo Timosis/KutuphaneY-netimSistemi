@@ -1,0 +1,46 @@
+﻿@model Kys.Web.ViewModels.KategoriKayitViewModel
+@using Syncfusion.EJ2
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<form id="KategoriKayitForm">
+    <input asp-for="KategoriKey" type="hidden" />
+    <div class="form-group row align-center">
+        <div class="col-lg-12">
+            <ejs-textbox id="KategoriAd" ejs-for="Ad" cssClass="e-outline" placeholder="Ad" floatLabelType="Auto"></ejs-textbox>
+        </div>        
+    </div>
+</form>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+    <button type="button" onclick="KategoriKaydet()" class="btn btn-primary">Kaydet</button>
+</div>
+
+<script>
+    function KategoriKaydet() {
+        var model = $('#KategoriKayitForm').serializeObject();
+        $.ajax({
+            url: "/Kategori/KategoriKaydet",
+            type: "post",
+            data: model,
+            success: function (sonuc) {
+                if (sonuc.Tip == 1) {                  
+                    ShowAlert("success", { text: sonuc.HataMesaji })
+                    $('#KategoriModal').modal('hide');
+                }
+            }
+        });
+        var grid = document.getElementById("KategorilerGrid").ej2_instances[0];//Get node reference.
+        let ajax = new ej.base.Ajax("/Kitap/KitaplariGetir", "GET");
+        ajax.send();
+        ajax.onSuccess = function (data) {
+            grid.dataSource = JSON.parse(data);
+        };
+        grid.refresh();
+    }
+</script>
+
+<ejs-scripts></ejs-scripts>

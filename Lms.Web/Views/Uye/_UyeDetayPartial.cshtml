@@ -1,0 +1,151 @@
+﻿@model Kys.Web.ViewModels.UyeDetayViewModel
+@using Syncfusion.EJ2
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="form-group">
+                <label>@Model.Uye.Ad</label><br/>
+                <label>@Model.Uye.Soyad</label><br />
+                <label>@Model.Uye.Email</label><br />
+                <label>@Model.Uye.Telefon</label>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="form-group row">
+                <div class="col-lg-6">
+                    <form id="OduncVerKayitForm">
+                        <ejs-textbox id="KitapDemirbasNo" cssClass="e-outline" placeholder="Kitap Demirbaş No" floatLabelType="Auto"></ejs-textbox>
+                    </form>
+                </div>
+                <div class="col-lg-6">
+                    <button type="button" onclick="OduncVer()" class="btn btn-primary">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <label>Önceden Alınmış Kitaplar</label>
+            <div id="GeriVerilmisKitaplarGrid">
+            </div>
+        </div>
+
+        <div class="col-lg-6">           
+            <label>Henüz Geri Verilmemiş Kitaplar</label>
+            <div id="GeriVerilmemisKitaplarGrid">
+            </div>
+        </div>
+    </div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+</div>
+
+<script>   
+
+    $(function () {
+        var geriVerilmisler = [];
+        var geriVerilmemisler = [];
+
+        var oduncler = @Html.Raw(Json.Serialize(@Model.Oduncler));
+
+        $.each(oduncler, function (key, value) {
+            if (value.OduncKitapDurum == 1) {
+                geriVerilmemisler.push(value);
+            } else {
+                geriVerilmisler.push(value);
+            }
+        });
+
+        var gridGeriVerilmisKitaplar = new ej.grids.Grid({
+            dataSource: geriVerilmisler,
+            columns: [
+                { field: 'OduncKey', headerText: 'Odunc No', isPrimaryKey: true, type: 'number' },
+                { field: 'OduncKitap.DemirbasNo', headerText: 'DemirbasNo', type: 'string' },
+                { field: 'OduncKitap.Ad', headerText: 'Kitabın Adı', type: 'string' },
+                { field: 'OduncKitap.Yazar', headerText: 'Yazar', type: 'string' },
+            ]
+        });
+
+        var IadeAl = function (args) {
+            debugger;
+            var rowObj = gridGeriVerilmemisKitaplar.getRowObjectFromUID(ej.base.closest(args.target, '.e-row').getAttribute('data-uid'));
+            $.ajax({
+                url: "/Uye/IadeAl",
+                type: "get",
+                data: rowObj.data,
+                success: function (sonuc) {
+                    if (sonuc.Tip == 2) {
+                        ShowAlert("warning", { text: sonuc.HataMesaji })
+                    }
+                    if (sonuc.Tip == 1) {
+                        ShowAlert("success", { text: sonuc.HataMesaji })
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    debugger;
+                    if (jqXHR.status == 500) {
+                        alert('Internal error: ' + jqXHR.responseText);
+                    } else {
+                        alert('Unexpected error.');
+                    }
+                }
+            });
+        }
+
+        var gridGeriVerilmemisKitaplar = new ej.grids.Grid({
+            dataSource: geriVerilmemisler,
+            columns: [
+                { field: 'OduncKey', headerText: 'Odunc No', isPrimaryKey: true, type: 'number' },
+                { field: 'OduncKitap.DemirbasNo', headerText: 'Demirbaş No', type: 'string' },
+                { field: 'OduncKitap.Ad', headerText: 'ad', type: 'string' },
+                { field: 'OduncKitap.Yazar', headerText: 'Yazar', type: 'string' },
+                {
+                    headerText: 'İşlemler', textAlign: 'Center', commands: [
+                        { buttonOption: { content: 'İade Al', iconCss: "e-icons e-return", cssClass: 'e-flat btn btn-danger', click: IadeAl } },
+
+                    ]
+                },
+            ]
+        });
+
+        gridGeriVerilmisKitaplar.appendTo('#GeriVerilmisKitaplarGrid');
+
+        gridGeriVerilmemisKitaplar.appendTo('#GeriVerilmemisKitaplarGrid');
+
+    });
+
+    function OduncVer() {
+
+        var uyeKey = @Html.Raw(Json.Serialize(@Model.Uye.UyeKey));
+        var demirbasNo = $('#KitapDemirbasNo').val();
+
+        $.ajax({
+            url: "/Uye/OduncVer",
+            type: "post",
+            dataType: "json",
+            data: {
+                demirbasNo: demirbasNo,
+                uyeKey: uyeKey
+            },
+            success: function (sonuc) {
+                if (sonuc.Tip == 2) {
+                    ShowAlert("warning", { text: sonuc.HataMesaji })                
+                }
+                if (sonuc.Tip == 1) {
+                    ShowAlert("success", { text: sonuc.HataMesaji })
+                }
+            }
+        });
+    }
+
+</script>
+
+
+<ejs-scripts></ejs-scripts>
